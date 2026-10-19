@@ -12,8 +12,10 @@ class CatalogItemResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
+    canonical_name: Optional[str] = None
     name: str
     default_price: Decimal
     times_sold: int
     category: str
     last_sold_at: datetime
+

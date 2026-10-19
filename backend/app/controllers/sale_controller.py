@@ -7,6 +7,7 @@ from app.models.register import Register
 from app.models.sale import Sale, SaleItem
 from app.models.catalog import ClothingCatalog
 from app.schemas.sale import SaleCreate
+from app.utils.normalization import normalize_canonical_name, format_title_name
 
 def round_money(val: Decimal) -> Decimal:
     return val.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
@@ -111,17 +112,23 @@ class SaleController:
     @staticmethod
     def _learn_catalog_from_items(db: Session, items: list) -> None:
         """
-        Rotina de auto-aprendizado:
-        - Se o produto não existir no catálogo: cadastra imediatamente com o preço informado.
-        - Se já existir: incrementa a frequência de vendas (times_sold) e atualiza o preço padrão e data.
+        Rotina inteligente de auto-aprendizado e desduplicação (Anti-Repetição):
+        1. Normalização prévia (chave canônica sem acentos, lowercase, sem espaços extras).
+        2. Pesquisa por canonical_name:
+           - SE JÁ EXISTE: Não duplica! Incrementa times_sold (+ item.quantity), atualiza default_price e last_sold_at.
+           - SE NÃO EXISTE: Insere novo registro com canonical_name, display name formatado (Title Case), default_price e times_sold inicial.
         """
         for item in items:
-            clean_name = item.product_name.strip()
+            raw_name = item.product_name
+            canonical_key = normalize_canonical_name(raw_name)
+            if not canonical_key:
+                continue
+
             unit_price = round_money(item.unit_price)
 
             existing_catalog_item = (
                 db.query(ClothingCatalog)
-                .filter(func.lower(ClothingCatalog.name) == clean_name.lower())
+                .filter(ClothingCatalog.canonical_name == canonical_key)
                 .first()
             )
 
@@ -131,8 +138,10 @@ class SaleController:
                 existing_catalog_item.default_price = unit_price
                 existing_catalog_item.last_sold_at = now
             else:
+                formatted_name = format_title_name(raw_name)
                 new_catalog_entry = ClothingCatalog(
-                    name=clean_name,
+                    canonical_name=canonical_key,
+                    name=formatted_name,
                     default_price=unit_price,
                     times_sold=item.quantity,
                     category="Geral",

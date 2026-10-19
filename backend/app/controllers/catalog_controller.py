@@ -1,9 +1,9 @@
 from datetime import datetime
 from decimal import Decimal
 from sqlalchemy.orm import Session
-from sqlalchemy import func
 from app.models.catalog import ClothingCatalog
 from app.schemas.catalog import CatalogItemCreate
+from app.utils.normalization import normalize_canonical_name, format_title_name
 
 class CatalogController:
     @staticmethod
@@ -17,10 +17,13 @@ class CatalogController:
 
     @staticmethod
     def search(db: Session, query: str) -> list[ClothingCatalog]:
-        clean_q = query.strip().lower()
+        canonical_q = normalize_canonical_name(query)
+        if not canonical_q:
+            return []
+
         return (
             db.query(ClothingCatalog)
-            .filter(func.lower(ClothingCatalog.name).contains(clean_q))
+            .filter(ClothingCatalog.canonical_name.contains(canonical_q))
             .order_by(ClothingCatalog.times_sold.desc())
             .limit(20)
             .all()
@@ -28,10 +31,14 @@ class CatalogController:
 
     @staticmethod
     def upsert_item(db: Session, payload: CatalogItemCreate) -> ClothingCatalog:
-        clean_name = payload.name.strip()
+        raw_name = payload.name
+        canonical_key = normalize_canonical_name(raw_name)
+        if not canonical_key:
+            raise ValueError("O nome da mercadoria é inválido.")
+
         existing = (
             db.query(ClothingCatalog)
-            .filter(func.lower(ClothingCatalog.name) == clean_name.lower())
+            .filter(ClothingCatalog.canonical_name == canonical_key)
             .first()
         )
 
@@ -43,8 +50,10 @@ class CatalogController:
             db.refresh(existing)
             return existing
 
+        formatted_name = format_title_name(raw_name)
         new_item = ClothingCatalog(
-            name=clean_name,
+            canonical_name=canonical_key,
+            name=formatted_name,
             default_price=payload.default_price,
             times_sold=0,
             category=payload.category or "Geral",
