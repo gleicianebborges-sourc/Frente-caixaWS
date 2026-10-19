@@ -12,7 +12,7 @@ import CartPanel from "../components/CartPanel";
 import PaymentPanel from "../components/PaymentPanel";
 import HistoryAndClosureView from "../components/HistoryAndClosureView";
 
-import { BarChart3, CheckCircle2 } from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
 
 export default function POSPage() {
   const {
@@ -57,7 +57,7 @@ export default function POSPage() {
     }
   }, [successToast]);
 
-  // Inclusão direta no catálogo (sem colocar no carrinho)
+  // Inclusão direta no catálogo
   const handleAddDirectCatalogItem = async (
     name: string,
     price: number,
@@ -94,11 +94,13 @@ export default function POSPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-[#f0f4fc] text-slate-900 font-sans">
-      {/* 1. Bloqueador ou Barra Superior de Caixa */}
+      {/* 1. Barra Superior com Logo, Status e Botão Gestão Diária (posicionado no local solicitado) */}
       <RegisterGuardBanner
         activeRegister={activeRegister}
+        salesCount={sales.length}
         onOpenRegister={openRegister}
         onOpenClosureModal={() => setShowClosureModal(true)}
+        onOpenManagementModal={() => setShowClosureModal(true)}
         loading={registerLoading}
       />
 
@@ -112,43 +114,7 @@ export default function POSPage() {
 
       {/* Conteúdo Principal do PDV */}
       <main className="flex-1 p-3.5 lg:p-5 max-w-[1600px] w-full mx-auto flex flex-col gap-4">
-        {/* Barra de Sub-Header com Identidade Visual da WS */}
-        <div className="flex flex-wrap items-center justify-between gap-3 bg-white px-5 py-3 rounded-2xl border border-blue-100/90 shadow-sm">
-          <div className="flex items-center gap-3.5">
-            <div className="w-11 h-11 rounded-xl overflow-hidden shadow-md ring-2 ring-blue-500/20 border border-blue-200 bg-[#070b22] shrink-0">
-              <img
-                src="/logo.jpg"
-                alt="WS Moda e Variedades"
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-base font-black text-[#070b22] tracking-tight">
-                  WS MODA E VARIEDADES
-                </h1>
-                <span className="text-[10px] font-bold uppercase tracking-wider bg-blue-50 text-blue-700 px-2 py-0.5 rounded-md border border-blue-200">
-                  PDV Oficial
-                </span>
-              </div>
-              <p className="text-xs text-slate-500">
-                Frente de Caixa Inteligente com auto-alimentação e sem bloqueio de estoque
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setShowClosureModal(true)}
-              className="px-4 py-2 bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 text-blue-900 font-bold text-xs rounded-xl flex items-center gap-2 transition-all cursor-pointer border border-blue-200 shadow-xs"
-            >
-              <BarChart3 className="w-4 h-4 text-blue-700" />
-              Gestão Diária & Vendas ({sales.length})
-            </button>
-          </div>
-        </div>
-
-        {/* 2. Catálogo Rápido de Peças Aprendidas e Cadastro Direto */}
+        {/* 2. Catálogo de Peças & Atalhos Rápidos */}
         <section className="min-h-[220px]">
           <QuickClothingCatalog
             items={popularItems}
@@ -173,9 +139,6 @@ export default function POSPage() {
               onRemoveItem={removeItem}
               onSetDiscount={setDiscount}
               onClearCart={clearCart}
-              onSaveToCatalogOnly={(name, price) =>
-                handleAddDirectCatalogItem(name, price, "Geral")
-              }
             />
           </div>
 
