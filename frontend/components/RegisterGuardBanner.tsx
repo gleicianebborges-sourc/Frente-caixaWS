@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useState } from "react";
+import Image from "next/image";
 import { Register } from "../hooks/useRegister";
-import { Lock, Unlock, AlertCircle, DollarSign, Clock } from "lucide-react";
+import { Lock, Unlock, AlertCircle, Clock } from "lucide-react";
 
 interface Props {
   activeRegister: Register | null;
@@ -42,32 +43,44 @@ export default function RegisterGuardBanner({
 
   if (loading) {
     return (
-      <div className="bg-slate-900 text-white px-6 py-3 flex items-center justify-between shadow-md">
-        <span className="text-sm font-medium animate-pulse">Sincronizando status do caixa...</span>
+      <div className="bg-[#070b22] text-white px-6 py-3 flex items-center justify-between shadow-md border-b border-blue-900/40">
+        <span className="text-sm font-medium animate-pulse text-blue-200">Sincronizando status do caixa...</span>
       </div>
     );
   }
 
-  // Caixa Fechado: Banner Guardião em tela cheia / bloqueador de operação
+  // Caixa Fechado: Modal / Banner de Bloqueio com o Logo da Loja
   if (!activeRegister) {
     return (
-      <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 border border-slate-100 text-center animate-in fade-in zoom-in-95 duration-200">
-          <div className="w-16 h-16 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center mx-auto mb-5 shadow-inner">
-            <Lock className="w-8 h-8" />
+      <div className="fixed inset-0 bg-[#070b22]/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 border border-blue-100 text-center animate-in fade-in zoom-in-95 duration-200">
+          {/* Logo WS Moda e Variedades */}
+          <div className="w-24 h-24 rounded-2xl overflow-hidden mx-auto mb-4 shadow-xl ring-4 ring-blue-500/20 border-2 border-blue-600 bg-[#070b22]">
+            <img
+              src="/logo.jpg"
+              alt="WS Moda e Variedades"
+              className="w-full h-full object-cover"
+            />
           </div>
-          <h2 className="text-2xl font-bold text-slate-800">Caixa Fechado</h2>
-          <p className="text-slate-500 text-sm mt-2 mb-6">
-            Para registrar vendas e movimentações na loja, informe o valor de fundo de troco (saldo inicial em gaveta) para abrir o dia.
+
+          <h2 className="text-2xl font-black text-[#070b22] tracking-tight">
+            WS MODA E VARIEDADES
+          </h2>
+          <p className="text-xs uppercase tracking-widest text-blue-600 font-bold mt-0.5">
+            Frente de Caixa Diário
+          </p>
+
+          <p className="text-slate-500 text-xs mt-3 mb-6 leading-relaxed">
+            Para registrar vendas e movimentações na loja, informe o fundo de troco (saldo inicial em gaveta) para abrir o caixa do dia.
           </p>
 
           <form onSubmit={handleOpen} className="space-y-4">
             <div className="text-left">
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
                 Saldo Inicial em Gaveta (R$)
               </label>
               <div className="relative">
-                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-medium">
+                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-blue-600 font-bold">
                   R$
                 </span>
                 <input
@@ -78,7 +91,7 @@ export default function RegisterGuardBanner({
                   autoFocus
                   value={openingBalanceInput}
                   onChange={(e) => setOpeningBalanceInput(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-rose-500 font-semibold text-lg text-slate-800"
+                  className="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600 font-bold text-lg text-slate-900 bg-slate-50"
                   placeholder="0.00"
                 />
               </div>
@@ -94,9 +107,9 @@ export default function RegisterGuardBanner({
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full py-3.5 px-4 bg-rose-600 hover:bg-rose-700 text-white font-semibold rounded-xl shadow-lg shadow-rose-600/30 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+              className="w-full py-3.5 px-4 bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-700 hover:from-blue-800 hover:to-indigo-800 text-white font-bold rounded-xl shadow-lg shadow-blue-600/30 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 tracking-wide text-sm"
             >
-              <Unlock className="w-5 h-5" />
+              <Unlock className="w-4 h-4" />
               {isSubmitting ? "Abrindo caixa..." : "Abrir Caixa Diário"}
             </button>
           </form>
@@ -105,20 +118,29 @@ export default function RegisterGuardBanner({
     );
   }
 
-  // Caixa Aberto: Barra superior de status ativo
+  // Caixa Aberto: Topbar elegante com as cores exatas do logo
   return (
-    <header className="bg-slate-900 text-white px-6 py-3.5 flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 shadow-sm">
-      <div className="flex items-center gap-3">
-        <div className="w-3 h-3 rounded-full bg-emerald-400 animate-ping" />
+    <header className="bg-gradient-to-r from-[#070b22] via-[#0c1b48] to-[#1e3a8a] text-white px-6 py-3 flex flex-wrap items-center justify-between gap-4 border-b border-blue-500/20 shadow-lg">
+      <div className="flex items-center gap-3.5">
+        <div className="w-10 h-10 rounded-xl overflow-hidden shadow-md ring-2 ring-blue-400/40 border border-white/20 bg-[#070b22] shrink-0">
+          <img
+            src="/logo.jpg"
+            alt="WS Moda e Variedades"
+            className="w-full h-full object-cover"
+          />
+        </div>
         <div>
-          <div className="flex items-center gap-2">
-            <span className="font-bold text-base tracking-wide text-white">WS MODA PDV</span>
-            <span className="bg-emerald-500/20 text-emerald-300 text-xs px-2.5 py-0.5 rounded-full font-medium border border-emerald-500/30">
-              Caixa Aberto #{activeRegister.id}
+          <div className="flex items-center gap-2.5">
+            <span className="font-black text-sm tracking-wide text-white drop-shadow-sm">
+              WS MODA E VARIEDADES
+            </span>
+            <span className="bg-emerald-500/20 text-emerald-300 text-[11px] px-2.5 py-0.5 rounded-full font-bold border border-emerald-500/40 flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              Caixa #{activeRegister.id} Aberto
             </span>
           </div>
-          <p className="text-xs text-slate-400 flex items-center gap-2 mt-0.5">
-            <Clock className="w-3.5 h-3.5" />
+          <p className="text-[11px] text-blue-200/80 flex items-center gap-1.5 mt-0.5 font-medium">
+            <Clock className="w-3 h-3 text-blue-300" />
             Data: {activeRegister.date}
           </p>
         </div>
@@ -126,18 +148,20 @@ export default function RegisterGuardBanner({
 
       <div className="flex items-center gap-6">
         <div className="text-right">
-          <span className="text-xs uppercase text-slate-400 tracking-wider font-medium">Fundo de Troco</span>
-          <p className="font-semibold text-sm text-slate-200">
+          <span className="text-[10px] uppercase text-blue-300/80 tracking-wider font-semibold">
+            Fundo de Troco
+          </span>
+          <p className="font-extrabold text-sm text-white">
             R$ {parseFloat(activeRegister.opening_balance).toFixed(2)}
           </p>
         </div>
 
         <button
           onClick={onOpenClosureModal}
-          className="px-4 py-2 bg-slate-800 hover:bg-red-950/40 hover:text-red-400 hover:border-red-800 border border-slate-700 rounded-lg text-xs font-semibold tracking-wide text-slate-300 transition-colors cursor-pointer flex items-center gap-1.5"
+          className="px-3.5 py-1.5 bg-white/10 hover:bg-red-500/20 hover:text-red-300 hover:border-red-500/50 border border-white/20 rounded-xl text-xs font-semibold text-blue-100 transition-all cursor-pointer flex items-center gap-1.5 backdrop-blur-sm"
         >
-          <Lock className="w-3.5 h-3.5" />
-          Encerrar / Fechar Caixa
+          <Lock className="w-3 h-3" />
+          Fechar Caixa
         </button>
       </div>
     </header>

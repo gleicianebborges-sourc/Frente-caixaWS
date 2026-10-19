@@ -12,7 +12,7 @@ import CartPanel from "../components/CartPanel";
 import PaymentPanel from "../components/PaymentPanel";
 import HistoryAndClosureView from "../components/HistoryAndClosureView";
 
-import { Shirt, BarChart3, Bell } from "lucide-react";
+import { BarChart3, CheckCircle2 } from "lucide-react";
 
 export default function POSPage() {
   const {
@@ -42,7 +42,7 @@ export default function POSPage() {
   const [showClosureModal, setShowClosureModal] = useState(false);
   const [successToast, setSuccessToast] = useState<string | null>(null);
 
-  // Busca vendas do caixa ativo
+  // Busca histórico de vendas do caixa ativo
   useEffect(() => {
     if (activeRegister) {
       fetchSales(activeRegister.id);
@@ -80,7 +80,7 @@ export default function POSPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-100/70 text-slate-900">
+    <div className="min-h-screen flex flex-col bg-[#f0f4fc] text-slate-900 font-sans">
       {/* 1. Bloqueador ou Barra Superior de Caixa */}
       <RegisterGuardBanner
         activeRegister={activeRegister}
@@ -89,28 +89,37 @@ export default function POSPage() {
         loading={registerLoading}
       />
 
-      {/* Toast Notification */}
+      {/* Toast Notification com estilo WS Navy & Blue */}
       {successToast && (
-        <div className="fixed top-16 right-6 z-40 bg-slate-900 text-white px-5 py-3 rounded-xl shadow-xl flex items-center gap-3 border border-slate-700 animate-in slide-in-from-top-4 duration-200">
-          <div className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
+        <div className="fixed top-16 right-6 z-40 bg-gradient-to-r from-[#070b22] to-[#1e3a8a] text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border border-blue-400/30 animate-in slide-in-from-top-4 duration-200">
+          <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
           <span className="text-sm font-semibold">{successToast}</span>
         </div>
       )}
 
       {/* Conteúdo Principal do PDV */}
-      <main className="flex-1 p-4 lg:p-6 max-w-[1600px] w-full mx-auto flex flex-col gap-5">
-        {/* Barra de Sub-Header com Título e Ação de Gestão */}
-        <div className="flex flex-wrap items-center justify-between gap-3 bg-white px-5 py-3 rounded-2xl border border-slate-200/80 shadow-xs">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-rose-600 text-white flex items-center justify-center shadow-md shadow-rose-600/20">
-              <Shirt className="w-5 h-5" />
+      <main className="flex-1 p-3.5 lg:p-5 max-w-[1600px] w-full mx-auto flex flex-col gap-4">
+        {/* Barra de Sub-Header com Identidade Visual da WS */}
+        <div className="flex flex-wrap items-center justify-between gap-3 bg-white px-5 py-3 rounded-2xl border border-blue-100/90 shadow-sm">
+          <div className="flex items-center gap-3.5">
+            <div className="w-11 h-11 rounded-xl overflow-hidden shadow-md ring-2 ring-blue-500/20 border border-blue-200 bg-[#070b22] shrink-0">
+              <img
+                src="/logo.jpg"
+                alt="WS Moda e Variedades"
+                className="w-full h-full object-cover"
+              />
             </div>
             <div>
-              <h1 className="text-base font-bold text-slate-800 leading-tight">
-                Frente de Caixa WS - Vestuário & Moda
-              </h1>
+              <div className="flex items-center gap-2">
+                <h1 className="text-base font-black text-[#070b22] tracking-tight">
+                  WS MODA E VARIEDADES
+                </h1>
+                <span className="text-[10px] font-bold uppercase tracking-wider bg-blue-50 text-blue-700 px-2 py-0.5 rounded-md border border-blue-200">
+                  PDV Oficial
+                </span>
+              </div>
               <p className="text-xs text-slate-500">
-                Lançamento ágil sem restrição de estoque com auto-alimentação inteligente de mercadorias
+                Frente de Caixa Inteligente com auto-alimentação e sem bloqueio de estoque
               </p>
             </div>
           </div>
@@ -118,15 +127,15 @@ export default function POSPage() {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setShowClosureModal(true)}
-              className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl flex items-center gap-2 transition-colors cursor-pointer border border-slate-300/80"
+              className="px-4 py-2 bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 text-blue-900 font-bold text-xs rounded-xl flex items-center gap-2 transition-all cursor-pointer border border-blue-200 shadow-xs"
             >
-              <BarChart3 className="w-4 h-4 text-slate-600" />
+              <BarChart3 className="w-4 h-4 text-blue-700" />
               Gestão Diária & Vendas ({sales.length})
             </button>
           </div>
         </div>
 
-        {/* 2. Catálogo Rápido de Peças Aprendidas (Auto-Alimentação) */}
+        {/* 2. Catálogo Rápido de Peças Aprendidas */}
         <section className="min-h-[220px]">
           <QuickClothingCatalog
             items={popularItems}
@@ -137,7 +146,7 @@ export default function POSPage() {
         </section>
 
         {/* 3. Área Operacional de Lançamento e Pagamento */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 flex-1 items-stretch">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 flex-1 items-stretch">
           {/* Painel do Carrinho e Entrada Ágil */}
           <div className="lg:col-span-7 flex flex-col">
             <CartPanel

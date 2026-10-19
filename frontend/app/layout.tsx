@@ -2,8 +2,11 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "WS Moda - Frente de Caixa PDV & Gestão",
-  description: "Frente de Caixa Inteligente para Loja de Roupas com Auto-Alimentação de Catálogo",
+  title: "WS Moda e Variedades - Frente de Caixa PDV & Gestão",
+  description: "Frente de Caixa Inteligente para WS Moda e Variedades com Auto-Alimentação de Catálogo",
+  icons: {
+    icon: "/logo.jpg",
+  },
 };
 
 export default function RootLayout({
@@ -13,7 +16,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="pt-BR">
-      <body className="antialiased selection:bg-rose-500 selection:text-white">
+      <body className="antialiased selection:bg-blue-600 selection:text-white">
         {children}
       </body>
     </html>
