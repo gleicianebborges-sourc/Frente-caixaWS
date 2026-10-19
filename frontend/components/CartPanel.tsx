@@ -2,7 +2,7 @@
 
 import React, { useState, useRef } from "react";
 import { CartItem } from "../hooks/useCart";
-import { Trash2, ShoppingBag, PlusCircle, MinusCircle, CornerDownLeft } from "lucide-react";
+import { Trash2, ShoppingBag, PlusCircle, MinusCircle, CornerDownLeft, BookmarkPlus } from "lucide-react";
 
 interface Props {
   items: CartItem[];
@@ -14,6 +14,7 @@ interface Props {
   onRemoveItem: (id: string) => void;
   onSetDiscount: (discount: number) => void;
   onClearCart: () => void;
+  onSaveToCatalogOnly?: (name: string, price: number) => Promise<any>;
 }
 
 export default function CartPanel({
@@ -26,10 +27,12 @@ export default function CartPanel({
   onRemoveItem,
   onSetDiscount,
   onClearCart,
+  onSaveToCatalogOnly,
 }: Props) {
   const [productName, setProductName] = useState("");
   const [unitPrice, setUnitPrice] = useState("");
   const [quantity, setQuantity] = useState("1");
+  const [savingCatalogOnly, setSavingCatalogOnly] = useState(false);
   const nameInputRef = useRef<HTMLInputElement>(null);
 
   const handleManualAdd = (e: React.FormEvent) => {
@@ -49,6 +52,30 @@ export default function CartPanel({
     setUnitPrice("");
     setQuantity("1");
     nameInputRef.current?.focus();
+  };
+
+  const handleSaveOnlyToCatalog = async () => {
+    if (!onSaveToCatalogOnly) return;
+    const cleanName = productName.trim();
+    const priceNum = parseFloat(unitPrice.replace(",", "."));
+
+    if (!cleanName || isNaN(priceNum) || priceNum <= 0) {
+      alert("Para cadastrar no catálogo, informe o Nome da Peça e o Preço.");
+      return;
+    }
+
+    try {
+      setSavingCatalogOnly(true);
+      await onSaveToCatalogOnly(cleanName, priceNum);
+      setProductName("");
+      setUnitPrice("");
+      setQuantity("1");
+      nameInputRef.current?.focus();
+    } catch (err: any) {
+      alert(err.message || "Erro ao salvar peça no catálogo.");
+    } finally {
+      setSavingCatalogOnly(false);
+    }
   };
 
   return (
@@ -80,7 +107,7 @@ export default function CartPanel({
       {/* Formulário de Lançamento Ágil (Teclado / Enter) */}
       <form onSubmit={handleManualAdd} className="p-4 bg-blue-50/40 border-b border-blue-100">
         <div className="grid grid-cols-12 gap-2">
-          <div className="col-span-12 sm:col-span-6">
+          <div className="col-span-12 sm:col-span-5">
             <label className="block text-[11px] font-bold text-[#070b22] uppercase tracking-wider mb-1">
               Peça / Descrição (Enter para adicionar)
             </label>
@@ -111,7 +138,7 @@ export default function CartPanel({
             />
           </div>
 
-          <div className="col-span-4 sm:col-span-2">
+          <div className="col-span-3 sm:col-span-2">
             <label className="block text-[11px] font-bold text-[#070b22] uppercase tracking-wider mb-1">
               Qtd
             </label>
@@ -125,14 +152,27 @@ export default function CartPanel({
             />
           </div>
 
-          <div className="col-span-2 sm:col-span-1 flex items-end">
+          <div className="col-span-3 sm:col-span-2 flex items-end gap-1.5">
             <button
               type="submit"
-              title="Lançar item no carrinho"
-              className="w-full h-[38px] bg-gradient-to-r from-[#070b22] to-[#1e3a8a] hover:from-[#0b1338] hover:to-[#2563eb] text-white rounded-xl flex items-center justify-center transition-all shadow-md cursor-pointer active:scale-95"
+              title="Lançar item no carrinho da venda"
+              className="flex-1 h-[38px] bg-gradient-to-r from-[#070b22] to-[#1e3a8a] hover:from-[#0b1338] hover:to-[#2563eb] text-white rounded-xl flex items-center justify-center transition-all shadow-md cursor-pointer active:scale-95"
             >
               <CornerDownLeft className="w-4 h-4" />
             </button>
+
+            {onSaveToCatalogOnly && (
+              <button
+                type="button"
+                onClick={handleSaveOnlyToCatalog}
+                disabled={savingCatalogOnly}
+                title="Cadastrar direto no catálogo (sem colocar no carrinho)"
+                className="h-[38px] px-2.5 bg-blue-100 hover:bg-blue-200 text-blue-900 border border-blue-300 rounded-xl flex items-center justify-center gap-1 text-[11px] font-bold transition-all shadow-2xs cursor-pointer active:scale-95 disabled:opacity-50"
+              >
+                <BookmarkPlus className="w-4 h-4 text-blue-700" />
+                <span className="hidden xl:inline">Só Catálogo</span>
+              </button>
+            )}
           </div>
         </div>
       </form>

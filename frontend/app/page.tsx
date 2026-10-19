@@ -36,7 +36,7 @@ export default function POSPage() {
     clearCart,
   } = useCart();
 
-  const { popularItems, loading: catalogLoading, refreshCatalog } = useCatalog();
+  const { popularItems, loading: catalogLoading, refreshCatalog, addCatalogItem } = useCatalog();
   const { sales, submitting, submitSale, fetchSales } = useSales();
 
   const [showClosureModal, setShowClosureModal] = useState(false);
@@ -56,6 +56,19 @@ export default function POSPage() {
       return () => clearTimeout(timer);
     }
   }, [successToast]);
+
+  // Inclusão direta no catálogo (sem colocar no carrinho)
+  const handleAddDirectCatalogItem = async (
+    name: string,
+    price: number,
+    category: string = "Geral"
+  ) => {
+    const saved = await addCatalogItem(name, price, category);
+    setSuccessToast(
+      `Peça "${saved.name}" (R$ ${parseFloat(saved.default_price).toFixed(2)}) cadastrada com sucesso!`
+    );
+    return saved;
+  };
 
   // Handler de Finalização de Venda
   const handleConfirmSale = async (paymentMethod: string, amountPaid?: number) => {
@@ -135,13 +148,14 @@ export default function POSPage() {
           </div>
         </div>
 
-        {/* 2. Catálogo Rápido de Peças Aprendidas */}
+        {/* 2. Catálogo Rápido de Peças Aprendidas e Cadastro Direto */}
         <section className="min-h-[220px]">
           <QuickClothingCatalog
             items={popularItems}
             loading={catalogLoading}
             onSelectItem={(name, price) => addItem(name, price, 1)}
             onRefresh={refreshCatalog}
+            onAddDirectCatalogItem={handleAddDirectCatalogItem}
           />
         </section>
 
@@ -159,6 +173,9 @@ export default function POSPage() {
               onRemoveItem={removeItem}
               onSetDiscount={setDiscount}
               onClearCart={clearCart}
+              onSaveToCatalogOnly={(name, price) =>
+                handleAddDirectCatalogItem(name, price, "Geral")
+              }
             />
           </div>
 
