@@ -59,14 +59,18 @@ export default function PaymentPanel({
   return (
     <div className="bg-white rounded-2xl border border-blue-100 shadow-sm p-4 sm:p-5 flex flex-col h-full">
       <div className="flex items-center justify-between pb-3 mb-4 border-b border-slate-100">
-        <h2 className="text-sm font-black text-[#070b22]">Forma de Pagamento</h2>
+        <div>
+          <h2 className="text-sm font-black text-[#070b22]">Forma de Pagamento</h2>
+          <p className="text-[11px] text-slate-500">Selecione como o cliente pagou</p>
+        </div>
         <span className="text-xs font-black text-blue-700 bg-blue-50 border border-blue-200 px-3 py-1 rounded-full">
           Total: R$ {total.toFixed(2)}
         </span>
       </div>
 
-      {/* Grid de Formas de Pagamento */}
+      {/* Grid de Formas de Pagamento (Seleção Direta) */}
       <div className="grid grid-cols-2 gap-2.5 mb-4">
+        {/* Dinheiro */}
         <button
           type="button"
           onClick={() => setMethod("MONEY")}
@@ -81,10 +85,11 @@ export default function PaymentPanel({
           </div>
           <div>
             <span className="block font-black text-xs uppercase tracking-wider">Dinheiro</span>
-            <span className="text-[11px] text-slate-500">Com cálculo de troco</span>
+            <span className="text-[11px] text-slate-500">Com troco</span>
           </div>
         </button>
 
+        {/* PIX (Apenas seleção de registro) */}
         <button
           type="button"
           onClick={() => setMethod("PIX")}
@@ -99,10 +104,11 @@ export default function PaymentPanel({
           </div>
           <div>
             <span className="block font-black text-xs uppercase tracking-wider">PIX</span>
-            <span className="text-[11px] text-slate-500">Chave / QR Code</span>
+            <span className="text-[11px] text-slate-500">À vista</span>
           </div>
         </button>
 
+        {/* Cartão de Crédito (Apenas seleção de registro) */}
         <button
           type="button"
           onClick={() => setMethod("CREDIT_CARD")}
@@ -117,10 +123,11 @@ export default function PaymentPanel({
           </div>
           <div>
             <span className="block font-black text-xs uppercase tracking-wider">Cartão Crédito</span>
-            <span className="text-[11px] text-slate-500">Maquininha TEF/POS</span>
+            <span className="text-[11px] text-slate-500">Maquininha externa</span>
           </div>
         </button>
 
+        {/* Cartão de Débito (Apenas seleção de registro) */}
         <button
           type="button"
           onClick={() => setMethod("DEBIT_CARD")}
@@ -135,13 +142,13 @@ export default function PaymentPanel({
           </div>
           <div>
             <span className="block font-black text-xs uppercase tracking-wider">Cartão Débito</span>
-            <span className="text-[11px] text-slate-500">À vista no cartão</span>
+            <span className="text-[11px] text-slate-500">Maquininha externa</span>
           </div>
         </button>
       </div>
 
-      {/* Seção Dinâmica de Troco para Dinheiro */}
-      {method === "MONEY" && (
+      {/* Seção Dinâmica de Troco APENAS para Dinheiro */}
+      {method === "MONEY" ? (
         <div className="bg-blue-50/60 border border-blue-200 rounded-2xl p-4 mb-4">
           <div className="flex items-center justify-between gap-3 mb-3">
             <div className="flex-1">
@@ -195,16 +202,11 @@ export default function PaymentPanel({
             </div>
           )}
         </div>
-      )}
-
-      {/* Exibição para PIX */}
-      {method === "PIX" && (
-        <div className="bg-blue-50/50 border border-blue-200 rounded-2xl p-4 mb-4 text-center">
-          <QrCode className="w-8 h-8 text-blue-700 mx-auto mb-1.5" />
-          <p className="text-xs font-bold text-[#070b22]">QR Code / Chave PIX WS Moda e Variedades</p>
-          <p className="text-[11px] text-slate-500 mt-0.5">
-            Aguarde o comprovante de transferência ou leitura do QR Code do cliente.
-          </p>
+      ) : (
+        /* Aviso discreto e amigável confirmando a seleção direta */
+        <div className="p-3 bg-slate-50 border border-slate-200/80 rounded-xl mb-4 text-xs text-slate-600 flex items-center justify-between">
+          <span>Forma selecionada: <strong className="text-blue-900">{method === "PIX" ? "PIX" : method === "CREDIT_CARD" ? "Cartão de Crédito" : "Cartão de Débito"}</strong></span>
+          <span className="text-[11px] font-medium text-slate-400">Pronto para finalizar</span>
         </div>
       )}
 
@@ -215,7 +217,7 @@ export default function PaymentPanel({
         </div>
       )}
 
-      {/* Botão de Conclusão com Estilo WS Gradient */}
+      {/* Botão de Conclusão */}
       <div className="mt-auto">
         <button
           type="button"
@@ -224,7 +226,7 @@ export default function PaymentPanel({
           className="w-full py-4 px-6 bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-700 hover:from-blue-800 hover:to-indigo-800 text-white font-black rounded-xl shadow-lg shadow-blue-600/30 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed text-base active:scale-[0.99] tracking-wide"
         >
           {isSubmitting ? (
-            <span>Concluindo e Aprendendo Itens...</span>
+            <span>Concluindo Venda...</span>
           ) : (
             <>
               <CheckCircle2 className="w-5 h-5 text-blue-200" />
