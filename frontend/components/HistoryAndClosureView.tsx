@@ -12,6 +12,7 @@ import {
   AlertCircle,
   CheckCircle,
   Lock,
+  MessageCircle,
 } from "lucide-react";
 
 interface Props {
@@ -48,6 +49,67 @@ export default function HistoryAndClosureView({
 
   const countedCashNum = parseFloat(countedCash.replace(",", ".")) || 0;
   const cashDifference = countedCashNum - expectedCashInDrawer;
+
+  // Contagens e valores por forma de pagamento
+  const pixSales = sales.filter((s) => s.payment_method === "PIX");
+  const moneySales = sales.filter((s) => s.payment_method === "MONEY");
+  const creditSales = sales.filter((s) => s.payment_method === "CREDIT_CARD");
+  const debitSales = sales.filter((s) => s.payment_method === "DEBIT_CARD");
+
+  const pixCount = pixSales.length;
+  const moneyCount = moneySales.length;
+  const creditCount = creditSales.length;
+  const debitCount = debitSales.length;
+
+  const pixAmount = pixSales.reduce((acc, s) => acc + parseFloat(s.total), 0);
+  const moneyAmount = moneySales.reduce((acc, s) => acc + parseFloat(s.total), 0);
+  const creditAmount = creditSales.reduce((acc, s) => acc + parseFloat(s.total), 0);
+  const debitAmount = debitSales.reduce((acc, s) => acc + parseFloat(s.total), 0);
+
+  // Enviar Relatório no WhatsApp (85 985890911)
+  const handleSendWhatsAppReport = () => {
+    const openingBal = activeRegister ? parseFloat(activeRegister.opening_balance) : 0;
+    const registerDate = activeRegister?.date || new Date().toISOString().split("T")[0];
+    const registerId = activeRegister?.id || "1";
+
+    // Consolidação de peças vendidas
+    const itemsMap: { [name: string]: number } = {};
+    sales.forEach((s) => {
+      s.items?.forEach((it) => {
+        itemsMap[it.product_name] = (itemsMap[it.product_name] || 0) + it.quantity;
+      });
+    });
+
+    const itemsSummaryText = Object.entries(itemsMap)
+      .map(([name, qty]) => `• ${qty}x ${name}`)
+      .join("\n");
+
+    const message = 
+`🛍️ *WS MODA E VARIEDADES*
+📊 *RELATÓRIO DIÁRIO DE VENDAS*
+📅 Data: ${registerDate} | Caixa #${registerId}
+----------------------------------
+💳 *VENDAS POR FORMA DE PAGAMENTO:*
+• *PIX:* ${pixCount} vendas (R$ ${pixAmount.toFixed(2)})
+• *Dinheiro:* ${moneyCount} vendas (R$ ${moneyAmount.toFixed(2)})
+• *Cartão Crédito:* ${creditCount} vendas (R$ ${creditAmount.toFixed(2)})
+• *Cartão Débito:* ${debitCount} vendas (R$ ${debitAmount.toFixed(2)})
+----------------------------------
+💰 *CONSOLIDADO DO DIA:*
+• *Total de Vendas:* ${totalSalesCount}
+• *Faturamento Total:* R$ ${totalRevenue.toFixed(2)}
+• *Ticket Médio:* R$ ${averageTicket.toFixed(2)}
+• *Fundo de Troco Inicial:* R$ ${openingBal.toFixed(2)}
+• *Dinheiro em Gaveta:* R$ ${expectedCashInDrawer.toFixed(2)}
+${countedCashNum > 0 ? `• *Dinheiro Físico Contado:* R$ ${countedCashNum.toFixed(2)}\n• *Diferença:* R$ ${cashDifference.toFixed(2)}\n` : ""}----------------------------------
+👗 *PEÇAS VENDIDAS:*
+${itemsSummaryText || "Nenhuma peça registrada."}
+`;
+
+    const phone = "5585985890911";
+    const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+    window.open(waUrl, "_blank");
+  };
 
   const handleExportCSV = () => {
     if (sales.length === 0) return;
@@ -194,22 +256,63 @@ export default function HistoryAndClosureView({
           </div>
         </div>
 
+        {/* Resumo Rápido das Formas de Pagamento */}
+        <div className="px-5 sm:px-6 py-2.5 bg-slate-100/60 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs">
+          <div className="flex flex-wrap items-center gap-4 text-slate-700 font-semibold">
+            <span className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-blue-600" />
+              <strong>PIX:</strong> {pixCount} ({`R$ ${pixAmount.toFixed(2)}`})
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-600" />
+              <strong>Dinheiro:</strong> {moneyCount} ({`R$ ${moneyAmount.toFixed(2)}`})
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-indigo-600" />
+              <strong>Crédito:</strong> {creditCount} ({`R$ ${creditAmount.toFixed(2)}`})
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-cyan-600" />
+              <strong>Débito:</strong> {debitCount} ({`R$ ${debitAmount.toFixed(2)}`})
+            </span>
+          </div>
+
+          <button
+            onClick={handleSendWhatsAppReport}
+            className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer active:scale-95"
+            title="Enviar este relatório diretamente para o WhatsApp 85 985890911"
+          >
+            <MessageCircle className="w-4 h-4" />
+            <span>Enviar no WhatsApp</span>
+          </button>
+        </div>
+
         {/* Conteúdo da Aba */}
         <div className="flex-1 overflow-y-auto p-5 sm:p-6">
           {activeTab === "history" ? (
             <div>
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
                 <h3 className="font-bold text-sm text-[#070b22]">
                   Transações do Caixa #{activeRegister?.id}
                 </h3>
-                <button
-                  onClick={handleExportCSV}
-                  disabled={sales.length === 0}
-                  className="px-3.5 py-1.5 bg-gradient-to-r from-blue-700 to-indigo-700 hover:from-blue-800 hover:to-indigo-800 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-xs disabled:opacity-50"
-                >
-                  <FileSpreadsheet className="w-4 h-4 text-blue-200" />
-                  Exportar CSV
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handleSendWhatsAppReport}
+                    className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-xs active:scale-95"
+                  >
+                    <MessageCircle className="w-4 h-4" />
+                    Enviar WhatsApp (85 98589-0911)
+                  </button>
+
+                  <button
+                    onClick={handleExportCSV}
+                    disabled={sales.length === 0}
+                    className="px-3.5 py-1.5 bg-gradient-to-r from-blue-700 to-indigo-700 hover:from-blue-800 hover:to-indigo-800 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-xs disabled:opacity-50"
+                  >
+                    <FileSpreadsheet className="w-4 h-4 text-blue-200" />
+                    Exportar CSV
+                  </button>
+                </div>
               </div>
 
               {sales.length === 0 ? (
@@ -258,7 +361,7 @@ export default function HistoryAndClosureView({
           ) : (
             <div>
               {closureSuccess ? (
-                <div className="text-center py-10">
+                <div className="text-center py-8">
                   <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4">
                     <CheckCircle className="w-8 h-8" />
                   </div>
@@ -268,12 +371,23 @@ export default function HistoryAndClosureView({
                   <p className="text-slate-500 text-sm max-w-md mx-auto mb-6">
                     O resumo diário foi auditado e registrado no banco de dados.
                   </p>
-                  <button
-                    onClick={onDismiss}
-                    className="px-6 py-2.5 bg-gradient-to-r from-[#070b22] to-[#1e3a8a] text-white rounded-xl text-sm font-bold shadow-md cursor-pointer"
-                  >
-                    Concluir e Fechar Tela
-                  </button>
+
+                  <div className="flex flex-wrap items-center justify-center gap-3">
+                    <button
+                      onClick={handleSendWhatsAppReport}
+                      className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-bold shadow-md cursor-pointer flex items-center gap-2 transition-all active:scale-95"
+                    >
+                      <MessageCircle className="w-4 h-4" />
+                      Enviar Fechamento no WhatsApp (85 985890911)
+                    </button>
+
+                    <button
+                      onClick={onDismiss}
+                      className="px-6 py-2.5 bg-gradient-to-r from-[#070b22] to-[#1e3a8a] text-white rounded-xl text-sm font-bold shadow-md cursor-pointer"
+                    >
+                      Concluir e Fechar Tela
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <form onSubmit={handleFinishClosure} className="max-w-xl mx-auto space-y-4">
@@ -307,8 +421,8 @@ export default function HistoryAndClosureView({
                         cashDifference === 0
                           ? "bg-emerald-50 border-emerald-300 text-emerald-800"
                           : cashDifference < 0
-                          ? "bg-red-50 border-red-300 text-red-800"
-                          : "bg-blue-50 border-blue-300 text-blue-800"
+                          ? `Falta de Caixa (Quebra): R$ ${Math.abs(cashDifference).toFixed(2)}`
+                          : `Sobra de Caixa: R$ ${cashDifference.toFixed(2)}`}
                       }`}
                     >
                       <span>
@@ -342,14 +456,25 @@ export default function HistoryAndClosureView({
                     </div>
                   )}
 
-                  <button
-                    type="submit"
-                    disabled={submittingClosure}
-                    className="w-full py-3.5 px-4 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-black rounded-xl shadow-lg shadow-red-600/30 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
-                  >
-                    <Lock className="w-4 h-4" />
-                    {submittingClosure ? "Encerrando..." : "Confirmar e Fechar Caixa Diário"}
-                  </button>
+                  <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                    <button
+                      type="button"
+                      onClick={handleSendWhatsAppReport}
+                      className="flex-1 py-3 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer text-xs uppercase tracking-wider"
+                    >
+                      <MessageCircle className="w-4 h-4" />
+                      Enviar Parcial no WhatsApp
+                    </button>
+
+                    <button
+                      type="submit"
+                      disabled={submittingClosure}
+                      className="flex-1 py-3.5 px-4 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-black rounded-xl shadow-lg shadow-red-600/30 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 text-xs uppercase tracking-wider"
+                    >
+                      <Lock className="w-4 h-4" />
+                      {submittingClosure ? "Encerrando..." : "Confirmar e Fechar Caixa"}
+                    </button>
+                  </div>
                 </form>
               )}
             </div>
